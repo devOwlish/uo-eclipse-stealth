@@ -20,6 +20,7 @@ STATE_IDLE = "IDLE"
 STATE_OVERLOADED = "OVERLOADED"
 
 
+# TODO: Logger
 class Miner():
     """
         Miner bot
@@ -91,6 +92,7 @@ class Miner():
         self._runebook.recall(["Mining", "Mine"])
 
     def _handle_tools(self):
+        # TODO: Get some ingots ffs
         if Count(self._pickaxe) < 2:
             self._crafting.craft(["Tools", "pickaxe"])
 
