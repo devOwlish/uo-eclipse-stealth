@@ -1,0 +1,30 @@
+tools:
+  pickaxe: 0x0E86
+  forge: 0x0FB1
+  tinker_tools: 0x1EB8
+
+resources:
+  ores:
+    - 0x19BA
+    - 0x19B9
+    - 0x19B7
+    - 0x19B8
+  mining_gems:
+    - 0x3198 # Blue Diamond
+    - 0x3194 # Perfect Emerald
+    - 0x3193 # Turquoise
+    - 0x3195 # Ecru Citrine
+    - 0x1726 # Rough Stone
+    - 0x0F28 # A Small Piece Of Blackrock
+    - 0x3197 # Fire Ruby
+    - 0x3192 # Dark Sapphire
+
+
+gumps:
+  runebook:
+    id: 0xC395ADB4
+    recall_button_graphic: 4005
+    nav_back_button_graphic: 4014
+  crafting:
+    id: 0x38920ABD
+    craft_button_graphic: 4005
