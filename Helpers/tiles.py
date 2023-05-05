@@ -18,16 +18,12 @@ class Tiles():
             radius (int, optional): Search radius. Defaults to 15.
         """
 
-        print(f"Finding tiles in the radius of {radius}")
-
         min_x, min_y = GetX(Self())-radius, GetY(Self())-radius
         max_x, max_y = GetX(Self())+radius, GetY(Self())+radius
 
         for tile_type in self._tile_types:
             self._tiles += GetStaticTilesArray(
                 min_x, min_y, max_x, max_y, WorldNum(), tile_type)
-
-        print(f"Found {len(self._tiles)} tiles")
 
     def sort_tiles(self) -> None:
         """
@@ -72,8 +68,6 @@ class Tiles():
 
         self.sort_tiles()
         val = self._tiles.pop(0)
-        print(val)
-        print(f"Remains: {len(self._tiles)}")
         return val
 
     def remove_tile(self, tile: list) -> None:

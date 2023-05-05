@@ -21,7 +21,6 @@ class Runebook(Gump):
         self._close_all()
         gump_count = GetGumpsCount()
         while gump_count == GetGumpsCount():
-            print(f"Try {gump_count=} {GetGumpsCount()=}")
             UOSay("[runebook")
             Wait(500)
 
@@ -38,14 +37,12 @@ class Runebook(Gump):
 
 
         for entry in route:
-            print(f"Route to {entry}")
-
             for button in self._find_buttons_row_by_text(entry):
                 if button["graphic"] == self._params["recall_button_graphic"]:
                     self._press_button(button["value"])
                     if entry == route[-1]:
-                        print("Last point reached")
                         Wait(1000)
                         if [x, y] == [GetX(Self()), GetY(Self())]:
+                            # TODO: Critical
                             print("Recall failed")
 

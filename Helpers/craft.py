@@ -24,13 +24,15 @@ class Craft(Gump):
         self._close_all()
         gump_count = GetGumpsCount()
         while gump_count == GetGumpsCount():
-            print(f"Try {gump_count=} {GetGumpsCount()=}")
+            # TODO: Logger -> Debug
+            # print(f"Try {gump_count=} {GetGumpsCount()=}")
             UseType(self._tool, 0xFFFF)
             Wait(500)
 
     def craft(self, route: list):
         self.open()
-        print(f"Crafting {'->'.join(route)}")
+        # TODO: Logger -> Debug
+        # print(f"Crafting {'->'.join(route)}")
         for entry in route:
             for button in self._find_buttons_row_by_text(entry):
                 if button["graphic"] == self._params["craft_button_graphic"]:

@@ -12,7 +12,8 @@ class Gump():
         self._serial = self._find_id()
         self._index = self._find_index()
         self._clilocs = {}
-        print(f"Gump serial: {hex(self._serial)=}")
+        # TODO: Logger -> Debug
+        # print(f"Gump serial: {hex(self._serial)=}")
 
     @staticmethod
     def _close_all():
@@ -27,7 +28,6 @@ class Gump():
                 Wait(500)
             Wait(100)
 
-            print(f"Closing all gumps, {attempt=}")
             attempt += 1
 
     def _find_id(self) -> int:
@@ -42,7 +42,6 @@ class Gump():
 
         for index in range(0, GetGumpsCount()):
             if GetGumpID(index) == self._id:
-                print(f"Found gump with id {hex(self._id)}")
                 return GetGumpSerial(index)
 
         raise ValueError(f"Gump with id {hex(self._id)} was not found")
@@ -59,8 +58,6 @@ class Gump():
 
         for index in range(0, GetGumpsCount()):
             if GetGumpID(index) == self._id:
-                print(
-                    f"Found gump with id {hex(self._id)}, index {index}")
                 return index
 
         raise ValueError(f"Gump with id {hex(self._id)} was not found")
@@ -94,7 +91,6 @@ class Gump():
             except ValueError:
                 Wait(500)
                 attempt += 1
-                print(f"Attempt {attempt}")
 
         return False
 
@@ -180,9 +176,9 @@ class Gump():
                     "page": gump_text["Page"],
                 })
             else:
+                # TODO: Debug
                 print(f"Failed to parse text {gump_text}")
 
-        print(f"Text count: {len(result)}")
         return result
 
 
@@ -202,7 +198,6 @@ class Gump():
         gump_info = GetGumpInfo(self._index)
 
         texts = self._parse_gump_text(gump_info, text)
-        print(texts)
 
         for entry in texts:
             for button in gump_info["GumpButtons"]:

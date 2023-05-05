@@ -60,9 +60,11 @@ class Miner():
 
             print(f"Unstuck: Dropping {hex(color)}")
             if FindTypesArrayEx(self._ores, [color], [Backpack()], False):
-                for ore in GetFoundList():
-                    MoveItem(ore, -1,  Ground(), GetX(Self()) + 1, GetY(Self()), GetZ(Self()))
+                    MoveItem(FindItem(), -1,  Ground(), GetX(Self()) + 1, GetY(Self()), GetZ(Self()))
                     Wait(1000)
+                    # TODO: Make some sane shit out of it
+                    priunt("Dropped")
+                    return
 
     def _smelt(self):
         self._runebook.recall(["Mining", "Smelt"])
@@ -123,6 +125,7 @@ class Miner():
             if InJournalBetweenTimes("|".join(["There is no"]), started, dt.now()) > 0:
                 break
         else:
+            # TODO: Critical
             print(f"Can't reach X: {x} Y: {y}")
             # Recall failed? Let's try one more time TODO: Revision
             self._runebook.recall(["Mining", "Mine"])
