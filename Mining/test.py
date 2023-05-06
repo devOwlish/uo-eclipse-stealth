@@ -8,6 +8,11 @@
         - House
 """
 
+# TODO: Get some ingots from the unload chest
+# TODO: Don't hardcode shit, pass it or smth
+# TODO: Variability? Whether it's worths
+
+
 from datetime import datetime as dt
 from py_stealth import *
 from Scripts.Helpers.tiles import Tiles
