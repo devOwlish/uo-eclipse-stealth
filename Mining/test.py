@@ -42,6 +42,7 @@ class Miner():
         ClearSystemJournal()
         SetFindDistance(20)
 
+    # TODO: To base class?
     def run(self):
         self._runebook.recall(["Mining", "Mine"])
         tiles = Tiles("cave")
@@ -51,6 +52,7 @@ class Miner():
             for _ in range(len(tiles.get_tiles())):
                 self._mine(tiles.pop_closest_tile())
 
+    # TODO: To base class?
     def _unstuck(self) -> None:
         """
             If there is overload, we can't recall. Thus, we must drop some ore.
@@ -65,11 +67,11 @@ class Miner():
 
             print(f"Unstuck: Dropping {hex(color)}")
             if FindTypesArrayEx(self._ores, [color], [Backpack()], False):
-                    MoveItem(FindItem(), -1,  Ground(), GetX(Self()) + 1, GetY(Self()), GetZ(Self()))
-                    Wait(1000)
-                    # TODO: Make some sane shit out of it
-                    priunt("Dropped")
-                    return
+                MoveItem(FindItem(), 10,  Ground(), GetX(Self()) + 1, GetY(Self()), GetZ(Self()))
+                Wait(1000)
+                # TODO: Make some sane shit out of it
+                print("Dropped")
+                return
 
     def _smelt(self):
         self._runebook.recall(["Mining", "Smelt"])
@@ -87,6 +89,7 @@ class Miner():
 
         self._runebook.recall(["Mining", "Mine"])
 
+    # TODO: To base class?
     def _unload(self):
         self._unstuck()
         self._runebook.recall(["Mining", "Unload"])
@@ -98,6 +101,7 @@ class Miner():
 
         self._runebook.recall(["Mining", "Mine"])
 
+    # TODO: To base class?
     def _handle_tools(self):
         # TODO: Get some ingots ffs
         if Count(self._pickaxe) < 2:
@@ -106,9 +110,15 @@ class Miner():
         if Count(Types().find_by_name("tinker_tools")) < 2:
             self._crafting.craft(["Tools", "tinker's tools"])
 
+    # TODO: To base class?
+    # TODO: Abstract harvest method ?
     def _mine(self, tile):
         tile, x, y, z = tile
         while not Dead() and newMoveXY(x, y, True, 1, True):
+
+            if Weight() > MaxWeight():
+                self._unstuck()
+
             started = dt.now()
             cancel_targets()
             self._handle_tools()
