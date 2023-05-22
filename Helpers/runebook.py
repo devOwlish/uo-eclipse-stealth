@@ -29,13 +29,13 @@ class Runebook(Gump):
             self._press_button(buttons[0]["value"], True)
 
 
-    def recall(self, route: list):
+    def recall(self, route: list) -> bool:
         x, y = GetX(Self()), GetY(Self())
 
         self.open()
         self.to_title_screen()
 
-
+        print(f"Recalling to {'->'.join(route)}")
         for entry in route:
             for button in self._find_buttons_row_by_text(entry):
                 if button["graphic"] == self._params["recall_button_graphic"]:
@@ -43,6 +43,8 @@ class Runebook(Gump):
                     if entry == route[-1]:
                         Wait(1000)
                         if [x, y] == [GetX(Self()), GetY(Self())]:
-                            # TODO: Critical
                             print("Recall failed")
+                            Wait(1000)
+                            return False
 
+        return True

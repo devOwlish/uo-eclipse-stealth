@@ -45,10 +45,10 @@ class Miner():
     # TODO: To base class?
     def run(self):
         self._runebook.recall(["Mining", "Mine"])
-        tiles = Tiles("cave")
-        tiles.find_around(10)
         # TODO: Revision
         while not Dead():
+            tiles = Tiles("cave")
+            tiles.find_around(10)
             for _ in range(len(tiles.get_tiles())):
                 self._mine(tiles.pop_closest_tile())
 
@@ -57,7 +57,9 @@ class Miner():
         """
             If there is overload, we can't recall. Thus, we must drop some ore.
         """
-
+        # TODO: Make it more sane
+        # The idea is to avoid "You are already there" message
+        newMoveXY(GetX(Self())+1, GetY(Self()), True, 1, True)
         to_drop = [0x0000, 0xFFFF]
 
         for color in to_drop:
@@ -92,14 +94,18 @@ class Miner():
     # TODO: To base class?
     def _unload(self):
         self._unstuck()
-        self._runebook.recall(["Mining", "Unload"])
+        if not self._runebook.recall(["Mining", "Unload"]):
+            print("Recall to unload failed")
+            return
 
         if FindTypesArrayEx(self._ores + self._gems, [0xFFFF], [Backpack()], False):
             for ore in GetFoundList():
                 MoveItem(ore, -1, 0x4299F0C3, 0, 0, 0)
                 Wait(1000)
 
-        self._runebook.recall(["Mining", "Mine"])
+        if not self._runebook.recall(["Mining", "Mine"]):
+            print("Recall to mine failed")
+            return
 
     # TODO: To base class?
     def _handle_tools(self):
@@ -114,36 +120,36 @@ class Miner():
     # TODO: Abstract harvest method ?
     def _mine(self, tile):
         tile, x, y, z = tile
-        while not Dead() and newMoveXY(x, y, True, 1, True):
-
+        while not Dead():
             if Weight() > MaxWeight():
                 self._unstuck()
-
-            started = dt.now()
-            cancel_targets()
-            self._handle_tools()
 
             if Weight() >= MaxWeight() - 50:
                 self._unload()
 
-            if FindType(self._pickaxe, Backpack()):
-                UseType(self._pickaxe, 0xFFFF)
-                WaitForTarget(2000)
+            if newMoveXY(x, y, True, 1, True):
+                started = dt.now()
+                cancel_targets()
+                self._handle_tools()
 
-            if TargetPresent():
-                WaitTargetTile(tile, x, y, z)
+                if FindType(self._pickaxe, Backpack()):
+                    UseType(self._pickaxe, 0xFFFF)
+                    WaitForTarget(2000)
+
+                if TargetPresent():
+                    WaitTargetTile(tile, x, y, z)
+                    # TODO: To messages
+                    WaitJournalLine(started, "|".join(
+                        ["You dig", "You loosen", "There is no"]), 15000)
+
                 # TODO: To messages
-                WaitJournalLine(started, "|".join(
-                    ["You dig", "You loosen", "There is no"]), 15000)
-
-            # TODO: To messages
-            if InJournalBetweenTimes("|".join(["There is no"]), started, dt.now()) > 0:
-                break
-        else:
-            # TODO: Critical
-            print(f"Can't reach X: {x} Y: {y}")
-            # Recall failed? Let's try one more time TODO: Revision
-            self._runebook.recall(["Mining", "Mine"])
+                if InJournalBetweenTimes("|".join(["There is no", "iron", "too far"]), started, dt.now()) > 0:
+                    break
+            else:
+                # TODO: Critical
+                print(f"Can't reach X: {x} Y: {y}")
+                # Recall failed? Let's try one more time TODO: Revision
+                self._runebook.recall(["Mining", "Mine"])
 
 
 if __name__ == "__main__":
