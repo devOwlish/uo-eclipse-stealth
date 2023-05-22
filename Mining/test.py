@@ -19,10 +19,7 @@ from Scripts.Helpers.tiles import Tiles
 from Scripts.Helpers.types import Types
 from Scripts.Helpers.runebook import Runebook
 from Scripts.Helpers.craft import Craft
-from Scripts.Helpers.misc import cancel_targets
-
-STATE_IDLE = "IDLE"
-STATE_OVERLOADED = "OVERLOADED"
+from Scripts.Helpers.misc import cancel_targets, get_context_menu_entry_id
 
 
 # TODO: Logger
@@ -30,17 +27,31 @@ class Miner():
     """
         Miner bot
     """
-    def __init__(self, runebook: Runebook, crafting: Craft) -> None:
-        self._state = STATE_IDLE
+    def __init__(self, runebook: Runebook, crafting: Craft, resource: str = "ore" ) -> None:
         self._pickaxe = Types().find_by_name("pickaxe")
         self._forge = Types().find_by_name("forge")
         self._ores = Types().find_by_name("ores")
+        self._granite = Types().find_by_name("granite")
         self._gems = Types().find_by_name("mining_gems")
         self._runebook = runebook
         self._crafting = crafting
 
         ClearSystemJournal()
         SetFindDistance(20)
+
+        # Set mining type
+        # We need at least 1 pickaxe to set the mining type
+        self._handle_tools()
+        if FindType(self._pickaxe, Backpack()):
+            entry_id = get_context_menu_entry_id(FindItem(), f"Set to {resource.capitalize()}")
+            if entry_id == -1:
+                print(f"Failed to get context menu entry id for {resource.capitalize()}")
+                exit()
+            SetContextMenuHook(FindItem(), entry_id)
+            SetContextMenuHook(0, 0)
+        else:
+            print("No pickaxe found, exiting")
+            exit()
 
     # TODO: To base class?
     def run(self):
@@ -68,7 +79,7 @@ class Miner():
                 return
 
             print(f"Unstuck: Dropping {hex(color)}")
-            if FindTypesArrayEx(self._ores, [color], [Backpack()], False):
+            if FindTypesArrayEx(self._ores + self._granite, [color], [Backpack()], False):
                 MoveItem(FindItem(), 10,  Ground(), GetX(Self()) + 1, GetY(Self()), GetZ(Self()))
                 Wait(1000)
                 # TODO: Make some sane shit out of it
@@ -98,7 +109,7 @@ class Miner():
             print("Recall to unload failed")
             return
 
-        if FindTypesArrayEx(self._ores + self._gems, [0xFFFF], [Backpack()], False):
+        if FindTypesArrayEx(self._ores + self._gems + self._granite, [0xFFFF], [Backpack()], False):
             for ore in GetFoundList():
                 MoveItem(ore, -1, 0x4299F0C3, 0, 0, 0)
                 Wait(1000)
@@ -121,10 +132,9 @@ class Miner():
     def _mine(self, tile):
         tile, x, y, z = tile
         while not Dead():
-            if Weight() > MaxWeight():
-                self._unstuck()
-
             if Weight() >= MaxWeight() - 50:
+                if Weight() > MaxWeight():
+                    self._unstuck()
                 self._unload()
 
             if newMoveXY(x, y, True, 1, True):
@@ -133,17 +143,18 @@ class Miner():
                 self._handle_tools()
 
                 if FindType(self._pickaxe, Backpack()):
-                    UseType(self._pickaxe, 0xFFFF)
+                    UseObject(FindItem())
                     WaitForTarget(2000)
 
                 if TargetPresent():
-                    WaitTargetTile(tile, x, y, z)
+                    TargetToTile(tile, x, y, z)
+                    # WaitTargetTile(tile, x, y, z)
                     # TODO: To messages
                     WaitJournalLine(started, "|".join(
-                        ["You dig", "You loosen", "There is no"]), 15000)
+                        ["You dig", "workable stone", "You loosen", "There is no"]), 15000)
 
                 # TODO: To messages
-                if InJournalBetweenTimes("|".join(["There is no", "iron", "too far"]), started, dt.now()) > 0:
+                if InJournalBetweenTimes("|".join(["There is no", "too far"]), started, dt.now()) > 0:
                     break
             else:
                 # TODO: Critical
@@ -156,10 +167,9 @@ if __name__ == "__main__":
     ClearSystemJournal()
 
     miner = Miner(
-        Runebook(), Craft(Types().find_by_name("tinker_tools"))
+        Runebook(), Craft(Types().find_by_name("tinker_tools")), "stone"
     )
     miner.run()
-
 
     # rb = Runebook()
 

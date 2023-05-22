@@ -9,6 +9,8 @@ resources:
     - 0x19B9
     - 0x19B7
     - 0x19B8
+  granite:
+    - 0x1779
   mining_gems:
     - 0x3198 # Blue Diamond
     - 0x3194 # Perfect Emerald
