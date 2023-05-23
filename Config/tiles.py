@@ -8,7 +8,7 @@ class Tiles():
         Class for tile manipulation
     """
     def __init__(self, tile_type: str) -> None:
-        self._tile_types = Config("Common/tiles.yaml").get_by_key(tile_type)
+        self._tile_types = Config("common/tiles.yaml").get_by_key(tile_type)
         self._tiles = []
 
     def find_around(self, radius: int = 15) -> None:

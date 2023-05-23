@@ -1,4 +1,4 @@
-from .types import Types
+from Scripts.Config.types import Types
 from .gump import Gump
 from py_stealth import *
 

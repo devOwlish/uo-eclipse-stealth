@@ -1,6 +1,6 @@
 import os
 import yaml
-
+from Scripts.Helpers.logger import Logger
 
 class Config():
     """
@@ -17,10 +17,15 @@ class Config():
             exc: Exception
         """
 
+        self._logger = Logger().get()
+
         self._base_dir = os.path.abspath(
-            os.path.join(__file__, "../", "../", "Config"))
+            os.path.join(__file__, "../"))
+
         self._config_file_path = os.path.abspath(
             os.path.join(self._base_dir, path))
+
+        self._logger.debug(f"Loading config file {self._config_file_path}")
 
         try:
             with open(self._config_file_path, encoding="UTF-8") as file:

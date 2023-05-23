@@ -11,8 +11,9 @@
 
 from datetime import datetime as dt
 from py_stealth import *
-from Scripts.Helpers.tiles import Tiles
-from Scripts.Helpers.types import Types
+from Scripts.Config.tiles import Tiles
+from Scripts.Config.types import Types
+from Scripts.Helpers.logger import Logger
 from Scripts.Helpers.runebook import Runebook
 from Scripts.Helpers.craft import Craft
 from Scripts.Helpers.misc import (
@@ -27,17 +28,21 @@ class Miner():
     """
         Miner bot
     """
-    def __init__(self, runebook: Runebook, crafting: Craft, resource: str = "ore" ) -> None:
-        self._pickaxe = Types().find_by_name("pickaxe")
-        self._forge = Types().find_by_name("forge")
-        self._ores = Types().find_by_name("ores")
-        self._ingots = Types().find_by_name("ingots")[0]
-        self._granite = Types().find_by_name("granite")
-        self._gems = Types().find_by_name("mining_gems")
+    def __init__(self, resource: str = "ore") -> None:
+        self._types = Types()
+        self._pickaxe = self._types.find_by_name("pickaxe")
+        self._forge = self._types.find_by_name("forge")
+        self._ores = self._types.find_by_name("ores")
+        self._resources = self._ores + \
+            self._types.find_by_name("granite") + \
+            self._types.find_by_name("mining_gems")
+        self._ingots = self._types.find_by_name("ingots")[0]
+
+        self._logger = Logger().get()
         # TODO: Change
         self._unload_box = 0x4299F0C3
-        self._runebook = runebook
-        self._crafting = crafting
+        self._runebook = Runebook()
+        self._crafting = Craft(self._types.find_by_name("tinker_tools"))
 
         ClearSystemJournal()
         SetARStatus(True)
@@ -56,13 +61,15 @@ class Miner():
             SetContextMenuHook(FindItem(), entry_id)
             SetContextMenuHook(0, 0)
         else:
-            print("No pickaxe found, exiting")
+            self._logger.critical("No pickaxe found, exiting")
             exit()
 
     # TODO: To base class?
     def run(self):
+        """
+            Main loop
+        """
         self._runebook.recall(["Mining", "Mine"])
-        # TODO: Revision
         while not Dead():
             tiles = Tiles("cave")
             tiles.find_around(10)
@@ -74,7 +81,6 @@ class Miner():
         """
             If there is overload, we can't recall. Thus, we must drop some ore.
         """
-        # TODO: Make it more sane
         # The idea is to avoid "You are already there" message
         newMoveXY(GetX(Self())+1, GetY(Self()), True, 1, True)
         to_drop = [0x0000, 0xFFFF]
@@ -85,14 +91,16 @@ class Miner():
                 return
 
             print(f"Unstuck: Dropping {hex(color)}")
-            if FindTypesArrayEx(self._ores + self._granite, [color], [Backpack()], False):
+            if FindTypesArrayEx(self._resources, [color], [Backpack()], False):
                 MoveItem(FindItem(), 10,  Ground(), GetX(Self()) + 1, GetY(Self()), GetZ(Self()))
                 Wait(1000)
-                # TODO: Make some sane shit out of it
                 print("Dropped")
                 return
 
     def _smelt(self):
+        """
+            Smelt ores
+        """
         self._runebook.recall(["Mining", "Smelt"])
 
         if FindType(self._forge, Ground()):
@@ -115,7 +123,7 @@ class Miner():
             print("Recall to unload failed")
             return
 
-        if FindTypesArrayEx(self._ores + self._gems + self._granite, [0xFFFF], [Backpack()], False):
+        if FindTypesArrayEx(self._resources, [0xFFFF], [Backpack()], False):
             for ore in GetFoundList():
                 MoveItem(ore, -1, self._unload_box, 0, 0, 0)
                 Wait(1000)
@@ -139,7 +147,7 @@ class Miner():
         if Count(self._pickaxe) < 2:
             self._crafting.craft(["Tools", "pickaxe"])
 
-        if Count(Types().find_by_name("tinker_tools")) < 2:
+        if Count(self._types.find_by_name("tinker_tools")) < 2:
             self._crafting.craft(["Tools", "tinker's tools"])
 
     # TODO: To base class?
@@ -172,9 +180,8 @@ class Miner():
                 if InJournalBetweenTimes("|".join(["There is no", "too far"]), started, dt.now()) > 0:
                     break
             else:
-                # TODO: Critical
                 print(f"Can't reach X: {x} Y: {y}")
-                # Recall failed? Let's try one more time TODO: Revision
+                # Recall failed? Let's try one more time
                 self._runebook.recall(["Mining", "Mine"])
 
 
@@ -182,16 +189,6 @@ if __name__ == "__main__":
     ClearSystemJournal()
 
     miner = Miner(
-        Runebook(), Craft(Types().find_by_name("tinker_tools")), "stone"
+        "stone"
     )
     miner.run()
-
-    # rb = Runebook()
-
-    # rb.recall([
-    #     "Trammel", "Britain"
-    # ])
-
-    # rb.recall([
-    #     "Common", "Home"
-    # ])
