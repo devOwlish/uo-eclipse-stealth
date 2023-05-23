@@ -8,10 +8,6 @@
         - House
 """
 
-# TODO: Get some ingots from the unload chest
-# TODO: Don't hardcode shit, pass it or smth
-# TODO: Variability? Whether it's worths
-
 
 from datetime import datetime as dt
 from py_stealth import *
@@ -19,7 +15,11 @@ from Scripts.Helpers.tiles import Tiles
 from Scripts.Helpers.types import Types
 from Scripts.Helpers.runebook import Runebook
 from Scripts.Helpers.craft import Craft
-from Scripts.Helpers.misc import cancel_targets, get_context_menu_entry_id
+from Scripts.Helpers.misc import (
+    cancel_targets,
+    get_context_menu_entry_id,
+    open_container
+)
 
 
 # TODO: Logger
@@ -31,12 +31,18 @@ class Miner():
         self._pickaxe = Types().find_by_name("pickaxe")
         self._forge = Types().find_by_name("forge")
         self._ores = Types().find_by_name("ores")
+        self._ingots = Types().find_by_name("ingots")[0]
         self._granite = Types().find_by_name("granite")
         self._gems = Types().find_by_name("mining_gems")
+        # TODO: Change
+        self._unload_box = 0x4299F0C3
         self._runebook = runebook
         self._crafting = crafting
 
         ClearSystemJournal()
+        SetARStatus(True)
+        SetPauseScriptOnDisconnectStatus(True)
+        SetWarMode(False)
         SetFindDistance(20)
 
         # Set mining type
@@ -111,8 +117,18 @@ class Miner():
 
         if FindTypesArrayEx(self._ores + self._gems + self._granite, [0xFFFF], [Backpack()], False):
             for ore in GetFoundList():
-                MoveItem(ore, -1, 0x4299F0C3, 0, 0, 0)
+                MoveItem(ore, -1, self._unload_box, 0, 0, 0)
                 Wait(1000)
+
+        if not FindTypeEx(self._ingots, 0x0000, Backpack()) or FindQuantity() < 100:
+            print("Need to restock")
+            open_container(self._unload_box)
+            if FindTypeEx(self._ingots, 0x0000, self._unload_box) and FindQuantity() > 100:
+                MoveItem(FindItem(), 100, Backpack(), 0, 0, 0)
+                Wait(1000)
+            else:
+                print("No ingots found in the unload box")
+                exit()
 
         if not self._runebook.recall(["Mining", "Mine"]):
             print("Recall to mine failed")
@@ -120,7 +136,6 @@ class Miner():
 
     # TODO: To base class?
     def _handle_tools(self):
-        # TODO: Get some ingots ffs
         if Count(self._pickaxe) < 2:
             self._crafting.craft(["Tools", "pickaxe"])
 
@@ -151,7 +166,7 @@ class Miner():
                     # WaitTargetTile(tile, x, y, z)
                     # TODO: To messages
                     WaitJournalLine(started, "|".join(
-                        ["You dig", "workable stone", "You loosen", "There is no"]), 15000)
+                        ["You dig", "workable stone", "You loosen", "There is no", "too far"]), 15000)
 
                 # TODO: To messages
                 if InJournalBetweenTimes("|".join(["There is no", "too far"]), started, dt.now()) > 0:

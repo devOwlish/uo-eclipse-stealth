@@ -42,3 +42,24 @@ def get_context_menu_entry_id(item_id: int, entry: str) -> int:
     ClearContextMenu()
 
     return -1
+
+def open_container(container: int) -> bool:
+    """Tries to open container. If attempts > 10 - fails.
+
+    Returns:
+        bool: True if container was opened
+    """
+
+    attempt = 0
+    while LastContainer() != Backpack():
+        UseObject(Backpack())
+        Wait(1000)
+
+    while LastContainer() != container:
+        attempt += 1
+        if attempt >= 10:
+            return False
+        UseObject(container)
+        Wait(1000)
+
+    return LastContainer() == container

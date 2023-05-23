@@ -9,6 +9,8 @@ resources:
     - 0x19B9
     - 0x19B7
     - 0x19B8
+  ingots:
+    - 0x1BF2
   granite:
     - 0x1779
   mining_gems:
