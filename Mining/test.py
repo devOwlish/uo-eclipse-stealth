@@ -9,7 +9,7 @@
 """
 
 
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 from py_stealth import *
 from Scripts.Config.tiles import Tiles
 from Scripts.Config.types import Types
@@ -35,12 +35,16 @@ class Miner():
         self._ores = self._types.find_by_name("ores")
         self._resources = self._ores + \
             self._types.find_by_name("granite") + \
-            self._types.find_by_name("mining_gems")
+            self._types.find_by_name("mining_gems") + [0x14F0]
         self._ingots = self._types.find_by_name("ingots")[0]
 
         self._logger = Logger().get()
         # TODO: Change
         self._unload_box = 0x4299F0C3
+        self._gatherer = 0x00002A66
+        self._order_claimed_dt = dt.now()
+
+
         self._runebook = Runebook()
         self._crafting = Craft(self._types.find_by_name("tinker_tools"))
 
@@ -142,6 +146,33 @@ class Miner():
             print("Recall to mine failed")
             return
 
+    def _claim_order(self):
+        time_diff = self._order_claimed_dt - dt.now()
+
+        if time_diff.total_seconds() / 60 > -31:
+            return
+
+        self._order_claimed_dt = dt.now()
+
+        if not self._runebook.recall(["Mining", "Gatherer"]):
+            print("Recall to gatherer failed")
+            return
+
+        if IsObjectExists(self._gatherer):
+            entry_id = get_context_menu_entry_id(self._gatherer, "Talk")
+            if entry_id == -1:
+                print("Failed to get context menu entry id for 'Talk'")
+            SetContextMenuHook(self._gatherer, entry_id)
+            SetContextMenuHook(0, 0)
+            Wait(1000)
+        else:
+            self._logger.critical("No Gatherer NPC found")
+
+
+        if not self._runebook.recall(["Mining", "Mine"]):
+            print("Recall to mine failed")
+            return
+
     # TODO: To base class?
     def _handle_tools(self):
         if Count(self._pickaxe) < 2:
@@ -159,7 +190,7 @@ class Miner():
                 if Weight() > MaxWeight():
                     self._unstuck()
                 self._unload()
-
+            self._claim_order()
             if newMoveXY(x, y, True, 1, True):
                 started = dt.now()
                 cancel_targets()
